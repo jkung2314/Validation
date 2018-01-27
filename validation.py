@@ -11,6 +11,7 @@ import time
 import psycopg2 as p
 
 start = int(time.time())
+current_time = datetime.now()
 
 #start connection
 try:
@@ -49,6 +50,8 @@ fName = args.file
 showOnlyInDir = args.showonlyindir
 ucscLdap = args.ucscldap
 soeLdap = args.soeldap
+
+ldapObj = ldapServer.ldapServer() #new LDAP Object
 
 def Fldap(username, user):
     result = ldapObj.uid_search(username)
@@ -98,13 +101,12 @@ def done():
     exit(1)
 
 #Insert into Postgres database
-def insert(username, password, domain, dateAdded, dumpName):
-        sql = "INSERT INTO compromised_processed (username, password, domain, date_added, dump_name) VALUES (%s, %s, %s, %s, %s)"
-        data = (username, password, domain, dateAdded, dumpName)
+def insert(username, password, domain, current_time, dumpName, dateAdded):
+        sql = "INSERT INTO compromised_processed (username, password, domain, date_added, date_dump, dump_name) VALUES (%s, %s, %s, %s, %s, %s)"
+        data = (username, password, domain, current_time, dumpName, dateAdded)
         cur.execute(sql, data)
 
 lineCount = 0
-#ldapObj = ldapServer.ldapServer()
 if fName is not None:
     try:
         userList = open(fName).read().strip().rsplit('\n')
@@ -126,10 +128,8 @@ if fName is not None:
                     print ("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
                     continue
                 if inDatabase(username, password) == False:
-                    added = datetime.now() #current time
-                    print added
-                    insert(username, password, domain, dateAdded, dumpName)
-                    if showData == "false":
+                    insert(username, password, domain, current_time, dumpName, dateAdded)
+                    if showData != "true":
                         print (username + " NOT in database, sending to LDAP...")
                     if dataOnly is None:
                         #Fldap(username, user)
@@ -146,10 +146,9 @@ if username is not None:
             print username
             password = "" #or NULL?
             if inDatabase(username, password) == False:
-                added = datetime.now()
                 domain = "" #or NULL?
-                insert(username, password, domain, dateAdded, dumpName)
-                if showData == "false":
+                insert(username, password, domain, current_time, dumpName, dateAdded)
+                if showData != "true":
                     print (username + " NOT in database, sending to LDAP...")
                 if dataOnly is None:
                     Uldap(username)
