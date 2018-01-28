@@ -80,17 +80,22 @@ def inDatabase(username, password):
     data = (username,)
     cur.execute(sql, data)
     row = cur.fetchall()
+    print row
     if row == []:
         return False
     else:
-        sql = "SELECT * FROM compromised_processed WHERE username = %s AND password = %s"
-        data = (username, password)
-        cur.execute(sql, data)
-        data = cur.fetchall()
-        if data == []:
-            return False
-        else:
+        if password == None:
             return True
+        else:
+            sql = "SELECT * FROM compromised_processed WHERE username = %s AND password = %s"
+            data = (username, password)
+            cur.execute(sql, data)
+            data = cur.fetchall()
+            if data == []:
+                return False
+            else:
+                print data
+                return True
 
 def done():
     con.commit()
@@ -144,14 +149,15 @@ if username is not None:
         if str(username).find("@") > 0:
             username = username[0:str(username).find("@")]
             print username
-            password = "" #or NULL?
+            password = None #or NULL?
             if inDatabase(username, password) == False:
-                domain = "" #or NULL?
+                domain = None #or NULL?
                 insert(username, password, domain, current_time, dumpName, dateAdded)
                 if showData != "true":
                     print (username + " NOT in database, sending to LDAP...")
                 if dataOnly is None:
-                    Uldap(username)
+                    print ""
+                    #Uldap(username)
             else:
                 if showData == "true":
                     print (username + " LOCATED in database, ignoring...")
