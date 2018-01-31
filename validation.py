@@ -51,9 +51,26 @@ showOnlyInDir = args.showonlyindir
 ucscLdap = args.ucscldap
 soeLdap = args.soeldap
 
-ldapObj = ldapServer.ldapServer() #new LDAP Object
+ldapObj = ldapServer.ldapServer() #New ldap object
 
-def Fldap(username, user):
+# Default to UCSC ldap server
+if ucscLdap is None and soeLdap is None:
+    ldapObj.setUCSCServer()
+elif soeLdap is not None:  # Use SOE ldap server if it's available
+    ldapObj.setSOEServer()
+elif soeLdap is not None and ucscLdap is not None: # maybe later we'll query both if not found in one or the other.
+    print "Error: Both UCSC and SOE ldap servers selected. Right now this script can only do one at a time."
+#ldapObj.connect()
+
+def Bind(username, password, user):
+    result = ldapObj.bind(username, password)
+
+    if result == "*** Valid credentials ***" and showOnlyInDir == "true":
+        print "Result: {0}, user: {1}, password: {2},rowdata: {3}".format(result, username, password, user)
+    else:
+        print "Result: {0}, user: {1}, password: {2},rowdata: {3}".format(result, username, password, user)
+
+def Fldap(username, user, password):
     result = ldapObj.uid_search(username)
 
     if len(result) < 1:
@@ -61,6 +78,7 @@ def Fldap(username, user):
             print "{0} is not in campus LDAP\n".format(username)
     else:
         print [result[0][0], username, user]
+        Bind(username, password, user)
 
     # sleep for a little bit to avoid hammering the ldap
     time.sleep(0.1)
@@ -75,12 +93,11 @@ def Uldap(username):
         print result
 
 #Check if in Postgres database
-def inDatabase(username, password):
+def inDatabase(username, password, showData):
     sql = "SELECT * FROM compromised_processed WHERE username = %s"
     data = (username,)
     cur.execute(sql, data)
     row = cur.fetchall()
-    print row
     if row == []:
         return False
     else:
@@ -93,9 +110,9 @@ def inDatabase(username, password):
             data = cur.fetchall()
             if data == []:
                 return False
-            else:
+            elif showData == "true":
                 print data
-                return True
+            return True
 
 def done():
     con.commit()
@@ -132,12 +149,12 @@ if fName is not None:
                 except IndexError:
                     print ("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
                     continue
-                if inDatabase(username, password) == False:
+                if inDatabase(username, password, showData) == False:
                     insert(username, password, domain, current_time, dumpName, dateAdded)
-                    if showData != "true":
+                    if showData == "false":
                         print (username + " NOT in database, sending to LDAP...")
                     if dataOnly is None:
-                        #Fldap(username, user)
+                        #Fldap(username, user, password)
                         continue
                 else:
                     if showData == "true":
@@ -150,14 +167,13 @@ if username is not None:
             username = username[0:str(username).find("@")]
             print username
             password = None #or NULL?
-            if inDatabase(username, password) == False:
+            if inDatabase(username, password, showData) == False:
                 domain = None #or NULL?
                 insert(username, password, domain, current_time, dumpName, dateAdded)
-                if showData != "true":
+                if showData == "false":
                     print (username + " NOT in database, sending to LDAP...")
                 if dataOnly is None:
-                    print ""
-                    #Uldap(username)
+                    Uldap(username)
             else:
                 if showData == "true":
                     print (username + " LOCATED in database, ignoring...")
