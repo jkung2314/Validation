@@ -21,7 +21,7 @@ except:
 
 cur = con.cursor()
 
-#Reset id key in rtbh to correct value
+#Reset id key in phoenixdb to correct value...might not be necessary since rows are not being removed
 cur.execute("SELECT setval('compromised_processed_id_seq', (SELECT MAX(id) FROM compromised_processed)+1);")
 con.commit()
 
@@ -60,8 +60,9 @@ elif soeLdap is not None:  # Use SOE ldap server if it's available
     ldapObj.setSOEServer()
 elif soeLdap is not None and ucscLdap is not None: # maybe later we'll query both if not found in one or the other.
     print "Error: Both UCSC and SOE ldap servers selected. Right now this script can only do one at a time."
-#ldapObj.connect()
+ldapObj.connect()
 
+#Function for Binding
 def Bind(username, password, user):
     result = ldapObj.bind(username, password)
 
@@ -70,6 +71,7 @@ def Bind(username, password, user):
     else:
         print "Result: {0}, user: {1}, password: {2},rowdata: {3}".format(result, username, password, user)
 
+#LDAP function for email:password format
 def Fldap(username, user, password):
     result = ldapObj.uid_search(username)
 
@@ -83,6 +85,7 @@ def Fldap(username, user, password):
     # sleep for a little bit to avoid hammering the ldap
     time.sleep(0.1)
 
+#LDAP function for username only format
 def Uldap(username):
     result = ldapObj.uid_search(username)
 
@@ -114,6 +117,7 @@ def inDatabase(username, password, showData):
                 print data
             return True
 
+#finish 
 def done():
     con.commit()
     con.close()
@@ -128,6 +132,7 @@ def insert(username, password, domain, current_time, dumpName, dateAdded):
         data = (username, password, domain, current_time, dumpName, dateAdded)
         cur.execute(sql, data)
 
+#If -file given
 lineCount = 0
 if fName is not None:
     try:
@@ -154,21 +159,21 @@ if fName is not None:
                     if showData == "false":
                         print (username + " NOT in database, sending to LDAP...")
                     if dataOnly is None:
-                        #Fldap(username, user, password)
-                        continue
+                        Fldap(username, user, password)
                 else:
                     if showData == "true":
                         print (username + " LOCATED in database, ignoring...")
     done()
 
+#If -username given
 if username is not None:
     if noEmailFormat != "true":
         if str(username).find("@") > 0:
             username = username[0:str(username).find("@")]
             print username
-            password = None #or NULL?
+            password = None
             if inDatabase(username, password, showData) == False:
-                domain = None #or NULL?
+                domain = None
                 insert(username, password, domain, current_time, dumpName, dateAdded)
                 if showData == "false":
                     print (username + " NOT in database, sending to LDAP...")
