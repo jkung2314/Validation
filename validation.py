@@ -8,6 +8,7 @@ import ldapServer
 import argparse
 from datetime import datetime
 import time
+import xlrd
 import psycopg2 as p
 
 start = int(time.time())
@@ -26,6 +27,7 @@ cur.execute("SELECT setval('compromised_processed_id_seq', (SELECT MAX(id) FROM 
 con.commit()
 
 parser = argparse.ArgumentParser(description='Process args')
+parser.add_argument('-type', help="Set to 'xlsx' if xlsx file, else leave empty")
 parser.add_argument('-dataonly', help="Set to true if you only want to add to database, and not send to LDAP")
 parser.add_argument('-dateadded', help="Date of dump.")
 parser.add_argument('-dumpname', help="Name of password dump.")
@@ -39,6 +41,7 @@ parser.add_argument('-ucscldap', help="Use the UCSC ldap server. This is the def
 parser.add_argument('-soeldap', help="User the SOE ldap server.")
 args = parser.parse_args()
 
+fileFormat = args.type
 showData = args.showonlyindatabase
 dataOnly = args.dataonly
 dateAdded = args.dateadded
@@ -117,7 +120,7 @@ def inDatabase(username, password, showData):
                 print data
             return True
 
-#finish 
+#finish
 def done():
     con.commit()
     con.close()
@@ -135,10 +138,20 @@ def insert(username, password, domain, current_time, dumpName, dateAdded):
 #If -file given
 lineCount = 0
 if fName is not None:
-    try:
-        userList = open(fName).read().strip().rsplit('\n')
-    except IOError as e:
-        print e
+    if fileFormat == "xlsx":
+        try:
+            workbook = xlrd.open_workbook(fName)
+            sheet = workbook.sheet_by_index(0)
+            userList = []
+            for row in range(sheet.nrows):
+                userList.append(sheet.cell_value(row, 0))
+        except IOError as e:
+            print e
+    else:
+        try:
+            userList = open(fName).read().strip().rsplit('\n')
+        except IOError as e:
+            print e
 
     for user in userList:
         lineCount = lineCount + 1
