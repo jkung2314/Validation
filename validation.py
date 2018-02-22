@@ -32,6 +32,7 @@ parser.add_argument('-dataonly', help="Set to true if you only want to add to da
 parser.add_argument('-dateadded', help="Date of dump.")
 parser.add_argument('-dumpname', help="Name of password dump.")
 parser.add_argument('-showonlyindatabase', help="Set value to 'false' to print values not found in database and 'true' to print values found in database.")
+parser.add_argument('-matchpassword', help="If your file does not contain a password set this to 'false'.")
 parser.add_argument('-username', help="Username without domain. Only uid field will be searched for a direct match.")
 parser.add_argument('-uservalue', help="Searches for string as exact uid or substring in primary/alternate email.")
 parser.add_argument('-file', help="A file containing one username per line. uid direct match search only.")
@@ -42,14 +43,15 @@ parser.add_argument('-soeldap', help="User the SOE ldap server.")
 args = parser.parse_args()
 
 fileFormat = args.type
-showData = args.showonlyindatabase
 dataOnly = args.dataonly
 dateAdded = args.dateadded
 dumpName = args.dumpname
-noEmailFormat = args.noemailformat
+showData = args.showonlyindatabase
+matchPassword = args.matchpassword
 username = args.username
 uservalue = args.uservalue
 fName = args.file
+noEmailFormat = args.noemailformat
 showOnlyInDir = args.showonlyindir
 ucscLdap = args.ucscldap
 soeLdap = args.soeldap
@@ -131,7 +133,7 @@ def done():
 
 #Insert into Postgres database
 def insert(username, password, domain, current_time, dumpName, dateAdded):
-        sql = "INSERT INTO compromised_processed (username, password, domain, date_added, date_dump, dump_name) VALUES (%s, %s, %s, %s, %s, %s)"
+        sql = "INSERT INTO compromised_processed (username, password, domain, date_added, dump_name, date_dump) VALUES (%s, %s, %s, %s, %s, %s)"
         data = (username, password, domain, current_time, dumpName, dateAdded)
         cur.execute(sql, data)
 
@@ -158,13 +160,15 @@ if fName is not None:
         if noEmailFormat != "true":
             if str(user).find("@") > 0:
                 username = user[0:str(user).find("@")]
-                password = user.split(":")
-                domain = user.split("@")
-                domain = domain[1].split(":")
-                domain = domain[0]
-                try:
+                if ":" in str(user):
+                    password = user.split(":")
                     password = password[1]
-                except IndexError:
+                    domain = user.split("@")
+                    domain = domain[1].split(":")
+                    domain = domain[0]
+                elif matchPassword == "false":
+                    password = None
+                else:
                     print ("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
                     continue
                 if inDatabase(username, password, showData) == False:
@@ -172,7 +176,10 @@ if fName is not None:
                     if showData == "false":
                         print (username + " NOT in database, sending to LDAP...")
                     if dataOnly is None:
-                        Fldap(username, user, password)
+                        if password != None:
+                            Fldap(username, user, password)
+                        else:
+                            Uldap(username)
                 else:
                     if showData == "true":
                         print (username + " LOCATED in database, ignoring...")
