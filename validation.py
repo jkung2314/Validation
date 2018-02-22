@@ -23,8 +23,8 @@ except:
 cur = con.cursor()
 
 #Reset id key in phoenixdb to correct value...might not be necessary since rows are not being removed
-cur.execute("SELECT setval('compromised_processed_id_seq', (SELECT MAX(id) FROM compromised_processed)+1);")
-con.commit()
+#cur.execute("SELECT setval('compromised_processed_id_seq', (SELECT MAX(id) FROM compromised_processed)+1);")
+#con.commit()
 
 parser = argparse.ArgumentParser(description='Process args')
 parser.add_argument('-type', help="Set to 'xlsx' if xlsx file, else leave empty")
