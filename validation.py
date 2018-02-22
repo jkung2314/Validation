@@ -10,6 +10,7 @@ from datetime import datetime
 import time
 import xlrd
 import psycopg2 as p
+import progressbar
 
 start = int(time.time())
 current_time = datetime.now()
@@ -139,6 +140,7 @@ def insert(username, password, domain, current_time, dumpName, dateAdded):
 
 #If -file given
 lineCount = 0
+errorList = []
 if fName is not None:
     if fileFormat == "xlsx":
         try:
@@ -154,35 +156,40 @@ if fName is not None:
             userList = open(fName).read().strip().rsplit('\n')
         except IOError as e:
             print e
-
-    for user in userList:
-        lineCount = lineCount + 1
-        if noEmailFormat != "true":
-            if str(user).find("@") > 0:
-                username = user[0:str(user).find("@")]
-                if ":" in str(user):
-                    password = user.split(":")
-                    password = password[1]
-                    domain = user.split("@")
-                    domain = domain[1].split(":")
-                    domain = domain[0]
-                elif matchPassword == "false":
-                    password = None
-                else:
-                    print ("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
-                    continue
-                if inDatabase(username, password, showData) == False:
-                    insert(username, password, domain, current_time, dumpName, dateAdded)
-                    if showData == "false":
-                        print (username + " NOT in database, sending to LDAP...")
-                    if dataOnly is None:
-                        if password != None:
-                            Fldap(username, user, password)
-                        else:
-                            Uldap(username)
-                else:
-                    if showData == "true":
-                        print (username + " LOCATED in database, ignoring...")
+    with progressbar.ProgressBar(max_value=len(userList)) as progress:
+        for user in userList:
+            lineCount = lineCount + 1
+            if noEmailFormat != "true":
+                if str(user).find("@") > 0:
+                    username = user[0:str(user).find("@")]
+                    if ":" in str(user):
+                        password = user.split(":")
+                        password = password[1]
+                        domain = user.split("@")
+                        domain = domain[1].split(":")
+                        domain = domain[0]
+                    elif matchPassword == "false":
+                        password = None
+                    else:
+                        errorList.append("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
+                        continue
+                    if inDatabase(username, password, showData) == False:
+                        insert(username, password, domain, current_time, dumpName, dateAdded)
+                        if showData == "false":
+                            print (username + " NOT in database, sending to LDAP...")
+                        if dataOnly is None:
+                            if password != None:
+                                Fldap(username, user, password)
+                            else:
+                                Uldap(username)
+                    else:
+                        if showData == "true":
+                            print (username + " LOCATED in database, ignoring...")
+            time.sleep(0.001)
+            progress.update(lineCount)
+    if errorList is not None:
+        for i in errorList:
+            print i        
     done()
 
 #If -username given
