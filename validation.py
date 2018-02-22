@@ -188,8 +188,8 @@ if fName is not None:
             time.sleep(0.001)
             progress.update(lineCount)
     if errorList is not None:
-        for i in errorList:
-            print i        
+        for error in errorList:
+            print error        
     done()
 
 #If -username given
