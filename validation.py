@@ -2,7 +2,7 @@
     Code adapted from Brian Hall <brian@ucsc.edu>
 
     Jonathan Kung <jhkung@ucsc.edu>
-    University of California, Santa Cruz Information Security Team
+    University of California, Santa Cruz Infrastructure Security Team
 """
 import ldapServer
 import argparse
