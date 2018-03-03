@@ -4,16 +4,39 @@
     Jonathan Kung <jhkung@ucsc.edu>
     University of California, Santa Cruz Infrastructure Security Team
 """
+import credentials
 import ldapServer
 import argparse
 from datetime import datetime
 import time
 import xlrd
 import psycopg2 as p
+from sqlalchemy import create_engine, select, Table, MetaData, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import sessionmaker
 import progressbar
 
 start = int(time.time())
 current_time = datetime.now()
+
+connString = 'postgresql://{0}:{1}@{2}/{3}'.format(credentials.sqluser, credentials.sqlpass,
+                                       credentials.sqlserver, credentials.sqldatabase)
+
+engine = create_engine(connString)
+connection = engine.connect()
+
+metadata = MetaData()
+users = Table(credentials.tablename, metadata,
+            Column(credentials.id_field, Integer, primary_key=True),
+            Column(credentials.username_field, String(255)),
+            Column(credentials.password_field, String(255)),
+            Column(credentials.domain_field, String(255)),
+            Column(credentials.date_added, String(50)), #change
+            Column(credentials.dump_name, String(255)),
+            Column(credentials.date_dump, String(12)) #change
+        )
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 #start connection
 try:
@@ -189,7 +212,7 @@ if fName is not None:
             progress.update(lineCount)
     if errorList is not None:
         for error in errorList:
-            print error        
+            print error
     done()
 
 #If -username given
