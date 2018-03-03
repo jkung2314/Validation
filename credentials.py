@@ -10,8 +10,8 @@ date_dump = 'date_dump' #TIMESTAMPTZ
 
 sqluser = ''
 sqlpass = ''
-sqlserver = ''
-sqldatabase = ''
+sqlserver = 'localhost'
+sqldatabase = 'phoenixdb'
 
 UCSC_LDAP_SERVER = ''
 UCSC_LDAP_DN = ''
