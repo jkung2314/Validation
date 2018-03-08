@@ -11,40 +11,18 @@ from datetime import datetime
 import time
 import xlrd
 import psycopg2 as p
-from sqlalchemy import create_engine, select, Table, MetaData, Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import sessionmaker
+from DB import compromisedDB
 import progressbar
 
 start = int(time.time())
 current_time = datetime.now()
 
-connString = 'postgresql://{0}:{1}@{2}/{3}'.format(credentials.sqluser, credentials.sqlpass,
-                                       credentials.sqlserver, credentials.sqldatabase)
-
-engine = create_engine(connString)
-connection = engine.connect()
-
-metadata = MetaData()
-users = Table(credentials.tablename, metadata,
-            Column(credentials.id_field, Integer, primary_key=True),
-            Column(credentials.username_field, String(255)),
-            Column(credentials.password_field, String(255)),
-            Column(credentials.domain_field, String(255)),
-            Column(credentials.date_added, String(50)), #change
-            Column(credentials.dump_name, String(255)),
-            Column(credentials.date_dump, String(12)) #change
-        )
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
+database = compromisedDB()
 #start connection
 try:
-    con = p.connect ("dbname = 'phoenixdb' host = 'localhost'")
+    database.connect()
 except:
     print "Unable to connect to database."
-
-cur = con.cursor()
 
 #Reset id key in phoenixdb to correct value...might not be necessary since rows are not being removed
 #cur.execute("SELECT setval('compromised_processed_id_seq', (SELECT MAX(id) FROM compromised_processed)+1);")
@@ -126,40 +104,27 @@ def Uldap(username):
 
 #Check if in Postgres database
 def inDatabase(username, password, showData):
-    sql = "SELECT * FROM compromised_processed WHERE username = %s"
-    data = (username,)
-    cur.execute(sql, data)
-    row = cur.fetchall()
-    if row == []:
+    row = database.searchUsername(username)
+    if row[0] == 0:
         return False
     else:
         if password == None:
             return True
         else:
-            sql = "SELECT * FROM compromised_processed WHERE username = %s AND password = %s"
-            data = (username, password)
-            cur.execute(sql, data)
-            data = cur.fetchall()
-            if data == []:
+            data = database.searchUsernamePassword(username, password)
+            if data[0] == 0:
                 return False
             elif showData == "true":
-                print data
+                print data[1]
             return True
 
 #finish
 def done():
-    con.commit()
-    con.close()
+    database.close() #commit and close
 
     end = int(time.time())
     print "Finished in " + str(end - start) + " seconds"
     exit(1)
-
-#Insert into Postgres database
-def insert(username, password, domain, current_time, dumpName, dateAdded):
-        sql = "INSERT INTO compromised_processed (username, password, domain, date_added, dump_name, date_dump) VALUES (%s, %s, %s, %s, %s, %s)"
-        data = (username, password, domain, current_time, dumpName, dateAdded)
-        cur.execute(sql, data)
 
 #If -file given
 lineCount = 0
@@ -197,7 +162,7 @@ if fName is not None:
                         errorList.append("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
                         continue
                     if inDatabase(username, password, showData) == False:
-                        insert(username, password, domain, current_time, dumpName, dateAdded)
+                        database.insert(username, password, domain, current_time, dumpName, dateAdded)
                         if showData == "false":
                             print (username + " NOT in database, sending to LDAP...")
                         if dataOnly is None:
@@ -224,7 +189,7 @@ if username is not None:
             password = None
             if inDatabase(username, password, showData) == False:
                 domain = None
-                insert(username, password, domain, current_time, dumpName, dateAdded)
+                database.insert(username, password, domain, current_time, dumpName, dateAdded)
                 if showData == "false":
                     print (username + " NOT in database, sending to LDAP...")
                 if dataOnly is None:

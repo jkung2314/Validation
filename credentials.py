@@ -1,13 +1,14 @@
 #Enter column names of database
 tablename = 'compromised_processed'
 id_field = 'id' #Integer, primary_key
-username_field = 'username' #String(255)
+username_field = 'username'
 password_field = 'password' #String(255)
 domain_field = 'domain' #String(255)
 date_added = 'date_added' #TIMESTAMPTZ
 dump_name = 'dump_name' #String(255)
 date_dump = 'date_dump' #TIMESTAMPTZ
 
+dialect = 'postgres'
 sqluser = ''
 sqlpass = ''
 sqlserver = 'localhost'
