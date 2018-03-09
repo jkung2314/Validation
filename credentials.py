@@ -7,21 +7,21 @@ showonlyindatabase = None #Set value to 'false' to print values not found in dat
 matchpassword = None #If your file does not contain a password set this to 'false'.
 username = None #Username without domain. Only uid field will be searched for a direct match.
 uservalue = None #Searches for string as exact uid or substring in primary/alternate email.
-file = 'compromise_list.txt' #A file containing one username per line. uid direct match search only.
+file = None #A file containing one username per line. uid direct match search only.
 noemailformat = None #Set value to true if usernames do not contain @ symbol or domain.
 showonlyindir = None #Set value to true to hide output lines for users not in the directory.
 ucscldap = None #Use the UCSC ldap server. This is the default.
 soeldap = None #Use the SOE ldap server.
 
 #Enter column names of database
-tablename = 'compromised_processed'
-id_field = 'id' #Integer, primary_key
-username_field = 'username'
-password_field = 'password' #String(255)
-domain_field = 'domain' #String(255)
-date_added = 'date_added' #TIMESTAMPTZ
-dump_name = 'dump_name' #String(255)
-date_dump = 'date_dump' #TIMESTAMPTZ
+tablename = 'compromised_processed' #CHANGE TO CORRESPONDING TABLENAME
+id_field = 'id' #DO NOT CHANGE
+username_field = 'username' #DO NOT CHANGE
+password_field = 'password' #DO NOT CHANGE
+domain_field = 'domain' #DO NOT CHANGE
+date_added = 'date_added' #DO NOT CHANGE
+dump_name = 'dump_name' #DO NOT CHANGE
+date_dump = 'date_dump' #DO NOT CHANGE
 
 dialect = 'postgres'
 sqluser = ''
@@ -33,10 +33,6 @@ UCSC_LDAP_SERVER = ''
 UCSC_LDAP_DN = ''
 UCSC_LDAP_FIELDS = ''
 UCSC_LDAP_BIND_DN = ""
-
-SOE_LDAP_SERVER = ''
-SOE_LDAP_DN = ''
-SOE_LDAP_FIELDS = ""
 
 # How long to wait before performing the next LDAP query or bind
 # Probably not an issue for small batches, larger batches we may want to consider being nicer
