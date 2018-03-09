@@ -34,19 +34,9 @@ uservalue = credentials.uservalue
 fName = credentials.file
 noEmailFormat = credentials.noemailformat
 showOnlyInDir = credentials.showonlyindir
-ucscLdap = credentials.ucscldap
-soeLdap = credentials.soeldap
 
 ldapObj = ldapServer.ldapServer() #New ldap object
-
-# Default to UCSC ldap server
-if ucscLdap is None and soeLdap is None:
-    ldapObj.setUCSCServer()
-elif soeLdap is not None:  # Use SOE ldap server if it's available
-    ldapObj.setSOEServer()
-elif soeLdap is not None and ucscLdap is not None: # maybe later we'll query both if not found in one or the other.
-    print "Error: Both UCSC and SOE ldap servers selected. Right now this script can only do one at a time."
-ldapObj.connect()
+ldapObj.connect() #Connect to server
 
 #Function for Binding
 def Bind(username, password, user):
@@ -105,7 +95,7 @@ def done():
     print "Finished in " + str(end - start) + " seconds"
     exit(1)
 
-#If -file given
+#If file given
 lineCount = 0
 errorList = []
 if fName is not None:
@@ -146,11 +136,9 @@ if fName is not None:
                             print (username + " NOT in database, sending to LDAP...")
                         if dataOnly is None:
                             if password != None:
-                                continue
-                                #Fldap(username, user, password)
+                                Fldap(username, user, password)
                             else:
-                                continue
-                                #Uldap(username)
+                                Uldap(username)
                     else:
                         if showData == "true":
                             print (username + " LOCATED in database, ignoring...")
@@ -160,7 +148,7 @@ if fName is not None:
             print error
     done()
 
-#If -username given
+#If username given
 if username is not None:
     if noEmailFormat != "true":
         if str(username).find("@") > 0:

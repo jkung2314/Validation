@@ -10,8 +10,6 @@ uservalue = None #Searches for string as exact uid or substring in primary/alter
 file = None #A file containing one username per line. uid direct match search only.
 noemailformat = None #Set value to true if usernames do not contain @ symbol or domain.
 showonlyindir = None #Set value to true to hide output lines for users not in the directory.
-ucscldap = None #Use the UCSC ldap server. This is the default.
-soeldap = None #Use the SOE ldap server.
 
 #Enter column names of database
 tablename = 'compromised_processed' #CHANGE TO CORRESPONDING TABLENAME
@@ -29,10 +27,11 @@ sqlpass = ''
 sqlserver = 'localhost'
 sqldatabase = 'phoenixdb'
 
-UCSC_LDAP_SERVER = ''
-UCSC_LDAP_DN = ''
-UCSC_LDAP_FIELDS = ''
-UCSC_LDAP_BIND_DN = ""
+LDAP_SEARCH_STRING = '' #( |(uid={0})(mail=*{0}*) )
+LDAP_SERVER = ''
+LDAP_DN = ''
+LDAP_FIELDS = ''
+LDAP_BIND_DN = ""
 
 # How long to wait before performing the next LDAP query or bind
 # Probably not an issue for small batches, larger batches we may want to consider being nicer

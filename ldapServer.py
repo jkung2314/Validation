@@ -1,11 +1,8 @@
 """
 Brian Hall
 UCSC
-Updated: 3/23/2017
 
-Handles ldap interactions and methods to set UCSC ldap server or others.
-Maybe we should move the ldap strings out into a credentials file?
-
+Handles ldap interactions and methods.
 """
 import ldap
 import credentials
@@ -22,17 +19,10 @@ class ldapServer:
         _LDAP_DN = LDAP_DN
         _LDAP_FIELDS = LDAP_FIELDS
 
-    def setUCSCServer(self):
-        self._LDAP_SERVER = credentials.UCSC_LDAP_SERVER
-        self._LDAP_DN = credentials.UCSC_LDAP_DN
-        self._LDAP_FIELDS = credentials.UCSC_LDAP_FIELDS
-
-    def setSOEServer(self):
-        self._LDAP_SERVER = credentials.SOE_LDAP_SERVER
-        self._LDAP_DN = credentials.SOE_LDAP_DN
-        self._LDAP_FIELDS = credentials.SOE_LDAP_FIELDS
-
     def connect(self):
+        self._LDAP_SERVER = credentials.LDAP_SERVER
+        self._LDAP_DN = credentials.LDAP_DN
+        self._LDAP_FIELDS = credentials.LDAP_FIELDS
         self._connection = ldap.initialize(self._LDAP_SERVER)
 
 
@@ -40,7 +30,7 @@ class ldapServer:
         if self._connection is None:
             self.connect()
 
-        results = self._connection.search_s(self._LDAP_DN, ldap.SCOPE_SUBTREE, '(|(uid={0})(mail=*{0}*)(ucscPersonPubAlternateMail=*{0}*))'.format(uservalue), self._LDAP_FIELDS )
+        results = self._connection.search_s(self._LDAP_DN, ldap.SCOPE_SUBTREE, credentials.LDAP_SEARCH_STRING.format(uservalue), self._LDAP_FIELDS )
         return results
 
     def uid_search(self, username):
@@ -55,7 +45,7 @@ class ldapServer:
             if self._connection is None:
                 self.connect()
             #self._connection.set_option(ldap.OPT_REFERRALS,0) # stops referrals, usually only needed for AD.
-            self._connection.simple_bind_s(credentials.UCSC_LDAP_BIND_DN.format(username), password)
+            self._connection.simple_bind_s(credentials.LDAP_BIND_DN.format(username), password)
             self._connection.unbind()
             self._connection = None
             return '*** Valid credentials ***'
