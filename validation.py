@@ -6,7 +6,6 @@
 """
 import credentials
 import ldapServer
-import argparse
 from datetime import datetime
 import time
 import xlrd
@@ -24,39 +23,19 @@ try:
 except:
     print "Unable to connect to database."
 
-#Reset id key in phoenixdb to correct value...might not be necessary since rows are not being removed
-#cur.execute("SELECT setval('compromised_processed_id_seq', (SELECT MAX(id) FROM compromised_processed)+1);")
-#con.commit()
-
-parser = argparse.ArgumentParser(description='Process args')
-parser.add_argument('-type', help="Set to 'xlsx' if xlsx file, else leave empty")
-parser.add_argument('-dataonly', help="Set to true if you only want to add to database, and not send to LDAP")
-parser.add_argument('-dateadded', help="Date of dump.")
-parser.add_argument('-dumpname', help="Name of password dump.")
-parser.add_argument('-showonlyindatabase', help="Set value to 'false' to print values not found in database and 'true' to print values found in database.")
-parser.add_argument('-matchpassword', help="If your file does not contain a password set this to 'false'.")
-parser.add_argument('-username', help="Username without domain. Only uid field will be searched for a direct match.")
-parser.add_argument('-uservalue', help="Searches for string as exact uid or substring in primary/alternate email.")
-parser.add_argument('-file', help="A file containing one username per line. uid direct match search only.")
-parser.add_argument('-noemailformat', help="Set value to true if usernames do not contain @ symbol or domain.")
-parser.add_argument('-showonlyindir', help="Set value to true to hide output lines for users not in the directory.")
-parser.add_argument('-ucscldap', help="Use the UCSC ldap server. This is the default.")
-parser.add_argument('-soeldap', help="User the SOE ldap server.")
-args = parser.parse_args()
-
-fileFormat = args.type
-dataOnly = args.dataonly
-dateAdded = args.dateadded
-dumpName = args.dumpname
-showData = args.showonlyindatabase
-matchPassword = args.matchpassword
-username = args.username
-uservalue = args.uservalue
-fName = args.file
-noEmailFormat = args.noemailformat
-showOnlyInDir = args.showonlyindir
-ucscLdap = args.ucscldap
-soeLdap = args.soeldap
+fileFormat = credentials.type
+dataOnly = credentials.dataonly
+dateAdded = credentials.dateadded
+dumpName = credentials.dumpname
+showData = credentials.showonlyindatabase
+matchPassword = credentials.matchpassword
+username = credentials.username
+uservalue = credentials.uservalue
+fName = credentials.file
+noEmailFormat = credentials.noemailformat
+showOnlyInDir = credentials.showonlyindir
+ucscLdap = credentials.ucscldap
+soeLdap = credentials.soeldap
 
 ldapObj = ldapServer.ldapServer() #New ldap object
 
@@ -115,7 +94,7 @@ def inDatabase(username, password, showData):
             if data[0] == 0:
                 return False
             elif showData == "true":
-                print data[1]
+                print str(data[1]) + "\n"
             return True
 
 #finish
@@ -167,13 +146,14 @@ if fName is not None:
                             print (username + " NOT in database, sending to LDAP...")
                         if dataOnly is None:
                             if password != None:
-                                Fldap(username, user, password)
+                                continue
+                                #Fldap(username, user, password)
                             else:
-                                Uldap(username)
+                                continue
+                                #Uldap(username)
                     else:
                         if showData == "true":
                             print (username + " LOCATED in database, ignoring...")
-            time.sleep(0.001)
             progress.update(lineCount)
     if errorList is not None:
         for error in errorList:
