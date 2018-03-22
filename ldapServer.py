@@ -1,12 +1,5 @@
-"""
-Brian Hall
-UCSC
-
-Handles ldap interactions and methods.
-"""
 import ldap
-import credentials
-
+import settings
 
 class ldapServer:
     _LDAP_SERVER = ''
@@ -20,9 +13,9 @@ class ldapServer:
         _LDAP_FIELDS = LDAP_FIELDS
 
     def connect(self):
-        self._LDAP_SERVER = credentials.LDAP_SERVER
-        self._LDAP_DN = credentials.LDAP_DN
-        self._LDAP_FIELDS = credentials.LDAP_FIELDS
+        self._LDAP_SERVER = settings.LDAP_SERVER
+        self._LDAP_DN = settings.LDAP_DN
+        self._LDAP_FIELDS = settings.LDAP_FIELDS
         self._connection = ldap.initialize(self._LDAP_SERVER)
 
 
@@ -30,26 +23,23 @@ class ldapServer:
         if self._connection is None:
             self.connect()
 
-        results = self._connection.search_s(self._LDAP_DN, ldap.SCOPE_SUBTREE, credentials.LDAP_SEARCH_STRING.format(uservalue), self._LDAP_FIELDS )
+        results = self._connection.search_s(self._LDAP_DN, ldap.SCOPE_SUBTREE, settings.LDAP_SEARCH_STRING.format(uservalue), self._LDAP_FIELDS )
         return results
 
     def uid_search(self, username):
         if self._connection is None:
             self.connect()
 
-        results = self._connection.search_s(self._LDAP_DN, ldap.SCOPE_SUBTREE, '(uid={0})'.format(username), self._LDAP_FIELDS )
+        results = self._connection.search_s(self._LDAP_DN, ldap.SCOPE_SUBTREE, settings.LDAP_UID_SEARCH_STRING.format(username), self._LDAP_FIELDS )
         return results
 
     def bind(self, username, password):
         try:
             if self._connection is None:
                 self.connect()
-            #self._connection.set_option(ldap.OPT_REFERRALS,0) # stops referrals, usually only needed for AD.
-            self._connection.simple_bind_s(credentials.LDAP_BIND_DN.format(username), password)
+            self._connection.simple_bind_s(settings.LDAP_BIND_DN.format(username), password)
             self._connection.unbind()
             self._connection = None
-            return '*** Valid credentials ***'
+            return True
         except ldap.INVALID_CREDENTIALS as e:
-            return 'Invalid credentials - {0}'.format(e)
-        except Exception as e:
-            return 'Exception: {0}'.format(e)
+            return False

@@ -8,11 +8,11 @@ from sqlalchemy import Column, Integer, String, Sequence
 # For session management
 from sqlalchemy.orm import sessionmaker
 
-import credentials
+import settings
 
 __Base = declarative_base()
 
-tablename = credentials.tablename
+tablename = settings.tablename
 
 # Database table mapping class
 class Compromised(__Base):
@@ -41,8 +41,8 @@ class compromisedDB():
     def connect(self):
         # Set up connection string for postgres DB
         # connString = 'dialect+driver://username:password@host:port/database'
-        connString = '{0}://{1}:{2}@{3}/{4}'.format(credentials.dialect, credentials.sqluser, credentials.sqlpass,
-                                               credentials.sqlserver, credentials.sqldatabase)
+        connString = '{0}://{1}:{2}@{3}/{4}'.format(settings.dialect, settings.sqluser, settings.sqlpass,
+                                               settings.sqlserver, settings.sqldatabase)
 
         self.__engine = create_engine(connString)
 

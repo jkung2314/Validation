@@ -1,16 +1,17 @@
 """
-    Code adapted from Brian Hall <brian@ucsc.edu>
-
     Jonathan Kung <jhkung@ucsc.edu>
     University of California, Santa Cruz Infrastructure Security Team
+
+    Contributors: Brian Hall <brian@ucsc.edu>
 """
-import credentials
+import settings
 import ldapServer
 from datetime import datetime
 import time
 import xlrd
 import psycopg2 as p
 from DB import compromisedDB
+import argparse
 import progressbar
 
 start = int(time.time())
@@ -23,17 +24,20 @@ try:
 except:
     print "Unable to connect to database."
 
-fileFormat = credentials.type
-dataOnly = credentials.dataonly
-dateAdded = credentials.dateadded
-dumpName = credentials.dumpname
-showData = credentials.showonlyindatabase
-matchPassword = credentials.matchpassword
-username = credentials.username
-uservalue = credentials.uservalue
-fName = credentials.file
-noEmailFormat = credentials.noemailformat
-showOnlyInDir = credentials.showonlyindir
+parser = argparse.ArgumentParser(description='Process args')
+parser.add_argument('-username', help="Search individual username.")
+args = parser.parse_args()
+
+username = args.username
+fileType = settings.fileType
+dataOnly = settings.dataOnly
+dateAdded = settings.dateAdded
+dumpName = settings.dumpName
+showData = settings.showData #
+matchPassword = settings.matchPassword
+fileName = settings.fileName
+noEmailFormat = settings.noEmailFormat
+showOnlyInDir = settings.showOnlyInDir
 
 ldapObj = ldapServer.ldapServer() #New ldap object
 ldapObj.connect() #Connect to server
@@ -42,10 +46,10 @@ ldapObj.connect() #Connect to server
 def Bind(username, password, user):
     result = ldapObj.bind(username, password)
 
-    if result == "*** Valid credentials ***" and showOnlyInDir == "true":
-        print "Result: {0}, user: {1}, password: {2},rowdata: {3}".format(result, username, password, user)
+    if result == True:
+        print "*** Bind Successful: Valid credentials ***"
     else:
-        print "Result: {0}, user: {1}, password: {2},rowdata: {3}".format(result, username, password, user)
+        print "*** Bind Failed: Invalid credentials ***"
 
 #LDAP function for email:password format
 def Fldap(username, user, password):
@@ -98,10 +102,10 @@ def done():
 #If file given
 lineCount = 0
 errorList = []
-if fName is not None:
-    if fileFormat == "xlsx":
+if fileName is not None and username is None:
+    if fileType == "xlsx":
         try:
-            workbook = xlrd.open_workbook(fName)
+            workbook = xlrd.open_workbook(fileName)
             sheet = workbook.sheet_by_index(0)
             userList = []
             for row in range(sheet.nrows):
@@ -110,7 +114,7 @@ if fName is not None:
             print e
     else:
         try:
-            userList = open(fName).read().strip().rsplit('\n')
+            userList = open(fileName).read().strip().rsplit('\n')
         except IOError as e:
             print e
     with progressbar.ProgressBar(max_value=len(userList)) as progress:
@@ -143,6 +147,7 @@ if fName is not None:
                         if showData == "true":
                             print (username + " LOCATED in database, ignoring...")
             progress.update(lineCount)
+            print ("\n")
     if errorList is not None:
         for error in errorList:
             print error
