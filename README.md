@@ -75,8 +75,8 @@ Fields to be edited, NOTE: ALL FIELDS ARE STRINGS
     sqldatabase = '' #database name
   
   LDAP Server:
-    LDAP_SEARCH_STRING = '' #Fields to search is user exists in LDAP; Example: '( |(uid={0})(mail=*{0}*) )'
-    LDAP_UID_SEARCH_STRING = '' ##Fields to search is user exists in LDAP Example: '(uid={0})'
+    LDAP_SEARCH_STRING = '' #Fields to search if user exists in LDAP; Example: '( |(uid={0})(mail=*{0}*) )'
+    LDAP_UID_SEARCH_STRING = '' ##Fields to search if user exists in LDAP Example: '(uid={0})'
     LDAP_SERVER = '' #LDAP Server 
     LDAP_DN = '' #LDAP DN
     LDAP_FIELDS = '' #LDAP fields to search 
