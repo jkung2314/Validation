@@ -25,10 +25,10 @@ except:
     print "Unable to connect to database."
 
 parser = argparse.ArgumentParser(description='Process args')
-parser.add_argument('-username', help="Search individual username.")
+parser.add_argument('-u', help="Search individual username.")
 args = parser.parse_args()
 
-username = args.username
+username = args.u
 fileType = settings.fileType
 dataOnly = settings.dataOnly
 dateAdded = settings.dateAdded
@@ -123,29 +123,31 @@ if fileName is not None and username is None:
             if noEmailFormat != "true":
                 if str(user).find("@") > 0:
                     username = user[0:str(user).find("@")]
-                    if ":" in str(user):
-                        password = user.split(":")
-                        password = password[1]
-                        domain = user.split("@")
-                        domain = domain[1].split(":")
-                        domain = domain[0]
-                    elif matchPassword == "false":
-                        password = None
+            else:
+                username = user
+            if ":" in str(user):
+                password = user.split(":")
+                password = password[1]
+                domain = user.split("@")
+                domain = domain[1].split(":")
+                domain = domain[0]
+            elif matchPassword == "false":
+                password = None
+            else:
+                errorList.append("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
+                continue
+            if inDatabase(username, password, showData) == False:
+                database.insert(username, password, domain, current_time, dumpName, dateAdded)
+                if showData == "false":
+                    print (username + " NOT in database, sending to LDAP...")
+                if dataOnly is None:
+                    if password != None:
+                        Fldap(username, user, password)
                     else:
-                        errorList.append("(email:password) formatted incorrectly in line " + str(lineCount) + ", username: " + username)
-                        continue
-                    if inDatabase(username, password, showData) == False:
-                        database.insert(username, password, domain, current_time, dumpName, dateAdded)
-                        if showData == "false":
-                            print (username + " NOT in database, sending to LDAP...")
-                        if dataOnly is None:
-                            if password != None:
-                                Fldap(username, user, password)
-                            else:
-                                Uldap(username)
-                    else:
-                        if showData == "true":
-                            print (username + " LOCATED in database, ignoring...")
+                        Uldap(username)
+            else:
+                if showData == "true":
+                    print (username + " LOCATED in database, ignoring...")
             progress.update(lineCount)
             print ("\n")
     if errorList is not None:
@@ -158,16 +160,17 @@ if username is not None:
     if noEmailFormat != "true":
         if str(username).find("@") > 0:
             username = username[0:str(username).find("@")]
-            print username
-            password = None
-            if inDatabase(username, password, showData) == False:
-                domain = None
-                database.insert(username, password, domain, current_time, dumpName, dateAdded)
-                if showData == "false":
-                    print (username + " NOT in database, sending to LDAP...")
-                if dataOnly is None:
-                    Uldap(username)
-            else:
-                if showData == "true":
-                    print (username + " LOCATED in database, ignoring...")
+    else:
+        username = username
+    password = None
+    if inDatabase(username, password, showData) == False:
+        domain = None
+        database.insert(username, password, domain, current_time, dumpName, dateAdded)
+        if showData == "false":
+            print (username + " NOT in database, sending to LDAP...")
+        if dataOnly is None:
+            Uldap(username)
+    else:
+        if showData == "true":
+            print (username + " LOCATED in database, ignoring...")
     done()

@@ -19,20 +19,22 @@ date_added = 'date_added' #DO NOT CHANGE
 dump_name = 'dump_name' #DO NOT CHANGE
 date_dump = 'date_dump' #DO NOT CHANGE
 
-dialect = 'postgres'
-sqluser = ''
-sqlpass = ''
-sqlserver = 'localhost'
-sqldatabase = 'phoenixdb'
+#Database settings
+dialect = '' # 'firebird', 'mssql', 'mysql', 'oracle', 'postgresql', 'sqlite', 'sybase'
+sqluser = '' #username
+sqlpass = '' #password
+sqlserver = '' #host:port
+sqldatabase = '' #database name
 
-LDAP_SEARCH_STRING = '' # Example: '( |(uid={0})(mail=*{0}*) )'
-LDAP_UID_SEARCH_STRING = '' # Example: '(uid={0})'
-LDAP_SERVER = ''
-LDAP_DN = ''
-LDAP_FIELDS = ''
-LDAP_BIND_DN = ""
+#LDAP Settings
+LDAP_SEARCH_STRING = '' #Fields to search if user exists in LDAP; Example: '( |(uid={0})(mail=*{0}*) )'
+LDAP_UID_SEARCH_STRING = '' #Fields to search if user exists in LDAP Example: '(uid={0})'
+LDAP_SERVER = '' #LDAP Server
+LDAP_DN = '' #LDAP DN
+LDAP_FIELDS = [''] #LDAP fields to search
+LDAP_BIND_DN = "" #LDAP BIND DN
 
 # How long to wait before performing the next LDAP query or bind
 # Probably not an issue for small batches, larger batches we may want to consider being nicer
-# to the ldap server. I have run a 0.1 delay against 5000 lines without issue or complaint from IDM.
+# to the ldap server.
 LDAP_ACTION_DELAY = 0.1
