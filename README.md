@@ -5,7 +5,7 @@ An all-in-one automated program that processes and validates the authenticity of
 ### Key Features
 * Determines whether **username:password** combination has previously been processed
 * .txt and .xlsx file support
-* Support for multiple databases for data storage:
+* Support for multiple databases for data storage utilizing SQLAlchemy:
 
 ```
     Firebird
@@ -16,7 +16,7 @@ An all-in-one automated program that processes and validates the authenticity of
     SQLite
     Sybase
 ```
-* Ability to load in previously processed data
+* Ability to load in previously processed compromised account data
 * Standard LDAP validation process
 
 **NOTE: For program to function correctly, these conditions must be met:** 
@@ -76,10 +76,10 @@ Fields to be edited, NOTE: ALL FIELDS ARE STRINGS
   
   LDAP Server:
     LDAP_SEARCH_STRING = '' #Fields to search if user exists in LDAP; Example: '( |(uid={0})(mail=*{0}*) )'
-    LDAP_UID_SEARCH_STRING = '' ##Fields to search if user exists in LDAP Example: '(uid={0})'
+    LDAP_UID_SEARCH_STRING = '' #Fields to search if user exists in LDAP Example: '(uid={0})'
     LDAP_SERVER = '' #LDAP Server 
     LDAP_DN = '' #LDAP DN
-    LDAP_FIELDS = '' #LDAP fields to search 
+    LDAP_FIELDS = [''] #LDAP fields to search 
     LDAP_BIND_DN = "" #LDAP BIND DN 
   
   Runtime:
@@ -89,13 +89,17 @@ Fields to be edited, NOTE: ALL FIELDS ARE STRINGS
       else: keep as 'None'
     fileType = None #Change to 'xlsx' if .xlsx file, else: keep as 'None'
     fileName = '' #Name of file if in same folder, or path to file
-    dateAdded = None #Insert date of dump, else: keep as 'None'
+    dateAdded = None #Insert date of dump, else: keep as 'None', 
+      #database dependent
     dumpName = None #Insert name of password dump, else: keep as 'None'
     
   Special Cases:
-    1. If text file contains usernames only:
+    1. If text file contains usernames only WITH a domain:
          matchPassword = 'false'
-    2. To load in data to database only:
+    2. If text file contains usernames only WITHOUT a domain:
+         noEmailFormat = 'true'
+         matchPassword = 'false'
+    3. To load in data to database only:
          dataOnly = 'true'
 ```
 
