@@ -1,6 +1,8 @@
 # Compromised Credentials Validation
 
-An all-in-one automated program that processes and validates the authenticity of potentially compromised accounts.
+An all-in-one automated program that processes and validates the authenticity of potentially compromised accounts.  
+
+Future updates will be published here: https://github.com/ucsc/compromisedaccountdb
 
 ### Key Features
 * Determines whether **username:password** combination has previously been processed
